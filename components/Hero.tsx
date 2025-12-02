@@ -5,6 +5,7 @@ import { ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { trackFormSubmission, trackCTAClick } from "@/lib/analytics";
 
 export function Hero() {
   const [email, setEmail] = useState("");
@@ -21,6 +22,9 @@ export function Hero() {
 
     setIsLoading(true);
     setError("");
+    
+    // Track form start
+    trackCTAClick("Waitlist Form", "Hero Section");
 
     try {
       const res = await fetch("/api/waitlist", {
@@ -32,12 +36,18 @@ export function Hero() {
       if (res.ok) {
         setIsSuccess(true);
         setEmail("");
+        // Track successful submission
+        trackFormSubmission("waitlist", true);
       } else {
         const data = await res.json();
         setError(data.message || "Something went wrong");
+        // Track failed submission
+        trackFormSubmission("waitlist", false);
       }
     } catch {
       setError("Something went wrong. Please try again.");
+      // Track error
+      trackFormSubmission("waitlist", false);
     } finally {
       setIsLoading(false);
     }
