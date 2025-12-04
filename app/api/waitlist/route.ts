@@ -5,7 +5,8 @@ import WaitlistWelcome from "@/emails/WaitlistWelcome";
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
+    const { email, name, role } = body;
 
     // Validate email
     if (!email || !email.includes("@")) {
@@ -15,10 +16,47 @@ export async function POST(request: Request) {
       );
     }
 
-    // Store email in Supabase before sending
-    const { error: dbError } = await supabase
+    // Validate name if provided
+    if (name !== undefined && typeof name === "string" && name.trim() === "") {
+      return NextResponse.json(
+        { error: "Name cannot be empty" },
+        { status: 400 }
+      );
+    }
+
+    // Validate role if provided
+    if (role !== undefined && !["creator", "brand"].includes(role)) {
+      return NextResponse.json(
+        { error: "Invalid role. Must be 'creator' or 'brand'" },
+        { status: 400 }
+      );
+    }
+
+    // Build the insert object with optional name and role
+    const insertData: { email: string; name?: string; role?: string } = { email };
+    if (name) insertData.name = name.trim();
+    if (role) insertData.role = role;
+
+    // Store in Supabase - try with all fields first, fallback to email-only if columns don't exist
+    let dbError = null;
+    
+    // First try with all fields
+    const { error: fullInsertError } = await supabase
       .from("waitlist")
-      .insert([{ email }]);
+      .insert([insertData]);
+
+    if (fullInsertError) {
+      // If column doesn't exist (PGRST204), fallback to email-only insert
+      if (fullInsertError.code === "PGRST204") {
+        console.log("Name/role columns not found, falling back to email-only insert");
+        const { error: emailOnlyError } = await supabase
+          .from("waitlist")
+          .insert([{ email }]);
+        dbError = emailOnlyError;
+      } else {
+        dbError = fullInsertError;
+      }
+    }
 
     if (dbError) {
       // Check if it's a duplicate email error
@@ -36,22 +74,27 @@ export async function POST(request: Request) {
     }
 
     // Send welcome email via Resend
-    const { data, error: sendError } = await resend.emails.send({
-      from: process.env.EMAIL_FROM || "marketing@maakeit.com",
-      to: email,
-      subject: "You're on the Maakeit Waitlist 🎉",
-      react: WaitlistWelcome({}),
-    });
+    try {
+      const { data, error: sendError } = await resend.emails.send({
+        from: process.env.EMAIL_FROM || "marketing@maakeit.com",
+        to: email,
+        subject: "You're on the Maakeit Waitlist",
+        react: WaitlistWelcome({ name: name || undefined }),
+      });
 
-    if (sendError) {
-      console.error("Resend error:", sendError);
-      console.log("Email failed but waitlist entry saved for:", email);
-    } else {
-      console.log("New waitlist signup:", email, "Email ID:", data?.id);
+      if (sendError) {
+        console.error("Resend error:", JSON.stringify(sendError, null, 2));
+        console.log("Email failed but waitlist entry saved for:", email);
+      } else {
+        console.log("New waitlist signup:", email, "Name:", name, "Role:", role, "Email ID:", data?.id);
+      }
+    } catch (emailError) {
+      console.error("Email send exception:", emailError);
+      // Don't fail the request if email fails - user is still on waitlist
     }
 
     return NextResponse.json(
-      { message: "Successfully joined waitlist", email },
+      { success: true, message: "Successfully joined waitlist", email },
       { status: 200 }
     );
   } catch (error) {
