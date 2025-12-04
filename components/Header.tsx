@@ -43,7 +43,7 @@ export function Header() {
           {[
             { name: "Blogs", href: "#" },
             { name: "About Us", href: "#about" },
-            { name: "Pricing", href: "#pricing" },
+            // { name: "Pricing", href: "#pricing" },
             { name: "Benefits", href: "#benefits" },
           ].map((item) => (
             <Link

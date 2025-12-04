@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { resend } from "@/lib/resend";
+import { supabase } from "@/lib/supabase";
+import WaitlistWelcome from "@/emails/WaitlistWelcome";
 
 export async function POST(request: Request) {
   try {
@@ -12,16 +15,41 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: Integrate with your database/email service
-    // Example integrations:
-    // - Save to Supabase
-    // - Send to email marketing service (Mailchimp, ConvertKit, etc.)
-    // - Save to a JSON file
-    // - Send notification email
+    // Store email in Supabase before sending
+    const { error: dbError } = await supabase
+      .from("waitlist")
+      .insert([{ email }]);
 
-    console.log("New waitlist signup:", email);
+    if (dbError) {
+      // Check if it's a duplicate email error
+      if (dbError.code === "23505") {
+        return NextResponse.json(
+          { error: "This email is already on the waitlist" },
+          { status: 409 }
+        );
+      }
+      console.error("Supabase error:", dbError);
+      return NextResponse.json(
+        { error: "Failed to save to waitlist" },
+        { status: 500 }
+      );
+    }
 
-    // Simulate successful submission
+    // Send welcome email via Resend
+    const { data, error: sendError } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || "marketing@maakeit.com",
+      to: email,
+      subject: "You're on the Maakeit Waitlist 🎉",
+      react: WaitlistWelcome({}),
+    });
+
+    if (sendError) {
+      console.error("Resend error:", sendError);
+      console.log("Email failed but waitlist entry saved for:", email);
+    } else {
+      console.log("New waitlist signup:", email, "Email ID:", data?.id);
+    }
+
     return NextResponse.json(
       { message: "Successfully joined waitlist", email },
       { status: 200 }
@@ -34,4 +62,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

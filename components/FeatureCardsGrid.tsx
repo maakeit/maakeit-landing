@@ -2,57 +2,57 @@
 
 import { motion } from "framer-motion";
 import {
-  Layers,
+  Search,
   FileCheck,
-  UserCheck,
-  CreditCard,
-  MessageSquare,
+  Shield,
+  Wallet,
   BarChart3,
+  FolderOpen,
   ArrowRight,
 } from "lucide-react";
 import { Button } from "./ui/button";
 
 const features = [
   {
-    icon: Layers,
-    title: "Campaign Marketplace",
+    icon: Search,
+    title: "Campaign Marketplace & Creator Discovery",
     description:
-      "Browse campaigns from top brands. Filter by niche, budget, and content type to find perfect matches.",
+      "Easily browse and publish campaigns to a network of vetted creators. Skip the tedious outreach — let creativity come to you.",
     accent: true,
   },
   {
     icon: FileCheck,
-    title: "Automatic Content Licensing",
+    title: "Structured Submission & Approval Flow",
     description:
-      "All content rights are automatically licensed to brands upon payment. Simple, transparent, legally sound.",
+      "Creators submit content through a guided workflow. You review, approve, and only pay once you're satisfied.",
     accent: false,
   },
   {
-    icon: UserCheck,
-    title: "Simple Creator Applications",
+    icon: Shield,
+    title: "Risk-Free Payment Escrow",
     description:
-      "One-click apply with your creator profile. Brands review applications and select the best fit.",
+      "Brands pay upfront + 2% handling fee — funds are held safely until content is approved.",
     accent: false,
   },
   {
-    icon: CreditCard,
-    title: "Paystack Payments",
+    icon: Wallet,
+    title: "Creators Keep 100% of Earnings",
     description:
-      "Get paid instantly via Paystack once content is approved. No waiting periods, no hassle.",
+      "No hidden fees or commissions. Transparent, fair, and creator-first.",
     accent: true,
   },
   {
-    icon: MessageSquare,
-    title: "Built-in Messaging",
+    icon: BarChart3,
+    title: "Built-in Attribution & Tracking",
     description:
-      "Collaborate directly with brands. Share drafts, get feedback, and finalize content—all in one place.",
+      "Track which content drives results — from views to sales. Data-driven UGC starts here. Coming Soon.",
     accent: false,
   },
   {
-    icon: BarChart3,
-    title: "Performance Analytics",
+    icon: FolderOpen,
+    title: "UGC Library & Scalable Content",
     description:
-      "Track your earnings, engagement metrics, and campaign performance in real-time dashboards.",
+      "Run multiple campaigns, collect creative assets, and reuse or scale across platforms — all in one place.",
     accent: true,
   },
 ];
@@ -76,11 +76,10 @@ export function FeatureCardsGrid() {
           className="mx-auto max-w-3xl text-center"
         >
           <h2 className="font-display text-3xl font-bold text-brown-900 md:text-4xl lg:text-5xl">
-            Why Brands & Creators Use Maakeit?
+            Why Brands & Creators Choose Maakeit
           </h2>
           <p className="mt-4 text-lg text-brown-600">
-            Experience the benefits of being part of a vibrant creator community that fosters
-            collaboration and innovation.
+            Everything you need to run successful UGC campaigns — from discovery to payment.
           </p>
         </motion.div>
 

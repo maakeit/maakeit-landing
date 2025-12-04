@@ -1,18 +1,32 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { Button } from "./ui/button";
 
 const faqs = [
-  "Quisque arcu lorem at, fermentum diam",
-  "Quisque arcu lorem ut",
-  "Quisque fermentum diam",
-  "Quisque arcu lorem at",
-  "Quisque arcu at, fermentum",
+  {
+    question: "Do I need to pay creators before seeing content?",
+    answer: "No. Brands pay upfront into escrow; funds are only released when you approve the content.",
+  },
+  {
+    question: "Can I request edits or revisions?",
+    answer: "Yes — your campaign brief can include revision rounds and quality expectations.",
+  },
+  {
+    question: "What if no content meets our expectations?",
+    answer: "You only pay when you approve. If nothing meets your standards, your funds remain safe.",
+  },
+  {
+    question: "Can creators reuse the content?",
+    answer: "Ownership and licensing rights are included in the campaign agreement based on your preference.",
+  },
 ];
 
 export function FAQAccordion() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   const scrollToWaitlist = () => {
     const element = document.getElementById("waitlist");
     if (element) {
@@ -31,7 +45,7 @@ export function FAQAccordion() {
           className="mb-12"
         >
           <h2 className="font-display text-3xl font-bold text-brown-900 md:text-4xl">
-            Frequently Answered Questions
+            Frequently Asked Questions
           </h2>
         </motion.div>
 
@@ -44,7 +58,7 @@ export function FAQAccordion() {
             transition={{ duration: 0.6 }}
             className="lg:col-span-2"
           >
-            <div className="space-y-1">
+            <div className="space-y-3">
               {faqs.map((faq, index) => (
                 <motion.div
                   key={index}
@@ -52,12 +66,34 @@ export function FAQAccordion() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="group flex cursor-pointer items-center justify-between border-b border-brown-200 py-5 transition-colors hover:border-brown-400"
+                  className="overflow-hidden rounded-xl border border-brown-200 bg-white"
                 >
-                  <span className="font-medium text-brown-700 transition-colors group-hover:text-brown-900">
-                    {faq}
-                  </span>
-                  <ChevronRight className="h-5 w-5 text-brown-400 transition-all group-hover:translate-x-1 group-hover:text-brown-600" />
+                  <button
+                    onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                    className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors hover:bg-brown-50"
+                  >
+                    <span className="font-medium text-brown-800">
+                      {faq.question}
+                    </span>
+                    <ChevronDown 
+                      className={`h-5 w-5 text-brown-500 transition-transform duration-300 ${
+                        openIndex === index ? "rotate-180" : ""
+                      }`} 
+                    />
+                  </button>
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      height: openIndex === index ? "auto" : 0,
+                      opacity: openIndex === index ? 1 : 0,
+                    }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
+                  >
+                    <p className="px-6 pb-5 text-brown-600">
+                      {faq.answer}
+                    </p>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
@@ -72,18 +108,18 @@ export function FAQAccordion() {
           >
             <div className="rounded-2xl bg-white p-8 shadow-warm-lg">
               <h3 className="mb-2 font-display text-2xl font-semibold text-brown-900">
-                Wanna talk before
+                Have more
                 <br />
-                joining us?
+                questions?
               </h3>
               <p className="mb-6 text-sm text-brown-500">
-                Schedule a call with our team
+                We&apos;re here to help you get started
               </p>
               <Button 
                 className="w-full rounded-full"
                 onClick={scrollToWaitlist}
               >
-                Book a Call
+                Contact Us
               </Button>
             </div>
           </motion.div>

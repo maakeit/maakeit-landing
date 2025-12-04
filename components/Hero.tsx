@@ -109,9 +109,9 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-brown-600 md:text-xl"
           >
-            Join a thriving community of creators and brands. Connect, collaborate, 
-            and grow. Unlock the full potential of content marketing with transparent 
-            pricing and instant payments.
+            Maakeit connects brands looking for high-impact user-generated content with 
+            talented creators. Post campaigns, accept submissions, and pay only when 
+            content is approved.
           </motion.p>
 
           {/* Waitlist Form */}
@@ -200,12 +200,22 @@ export function Hero() {
             )}
           </motion.div>
 
+          {/* Sub-text under CTA */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-4 text-sm text-brown-500"
+          >
+            No credit card needed. Get early access.
+          </motion.p>
+
           {/* Social proof avatars */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-10 flex items-center justify-center gap-4"
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-8 flex items-center justify-center gap-4"
           >
             <div className="flex -space-x-3">
               {["#B89B74", "#9A7B52", "#7D5D3B", "#5D4427"].map((color, i) => (
@@ -213,7 +223,7 @@ export function Hero() {
                   key={i}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.5 + i * 0.1 }}
+                  transition={{ delay: 0.6 + i * 0.1 }}
                   className="h-10 w-10 rounded-full border-2 border-white shadow-warm-sm"
                   style={{ backgroundColor: color }}
                 />
