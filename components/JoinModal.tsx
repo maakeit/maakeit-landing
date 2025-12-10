@@ -364,3 +364,4 @@ export function JoinModal({ isOpen, onClose }: JoinModalProps) {
   );
 }
 
+

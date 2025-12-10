@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { resend } from "@/lib/resend";
 import { supabase } from "@/lib/supabase";
 import WaitlistWelcome from "@/emails/WaitlistWelcome";
+import CreatorWelcome from "@/emails/CreatorWelcome";
 
 export async function POST(request: Request) {
   try {
@@ -73,13 +74,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Send welcome email via Resend
+    // Send welcome email via Resend based on role
     try {
+      const isCreator = role === "creator";
+      const emailSubject = isCreator
+        ? "Welcome to Maakeit, Creator!"
+        : "You're on the Maakeit Waitlist";
+      
+      const emailComponent = isCreator
+        ? CreatorWelcome({ name: name || undefined })
+        : WaitlistWelcome({ name: name || undefined });
+
       const { data, error: sendError } = await resend.emails.send({
         from: process.env.EMAIL_FROM || "marketing@maakeit.com",
         to: email,
-        subject: "You're on the Maakeit Waitlist",
-        react: WaitlistWelcome({ name: name || undefined }),
+        subject: emailSubject,
+        react: emailComponent,
       });
 
       if (sendError) {
