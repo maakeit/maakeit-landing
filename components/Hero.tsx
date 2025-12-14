@@ -104,7 +104,7 @@ export function Hero() {
                 ))}
               </div>
               <p className="text-sm text-brown-600">
-                <span className="font-semibold text-brown-800">10+</span> creators already joined
+                <span className="font-semibold text-brown-800">100+</span> creators already joined
               </p>
             </motion.div>
           </div>
