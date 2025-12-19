@@ -47,7 +47,7 @@ export default function AboutPageClient() {
 
   return (
     <>
-      <Header />
+      <Header homePage={false} />
       <main className="min-h-screen bg-beige-100">
         {/* Hero Section */}
         <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">

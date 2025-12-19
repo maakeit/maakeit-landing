@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="min-h-screen bg-pattern">
-      <Header />
+      <Header homePage={true} />
       <Hero />
       {/* <PressBar /> */}
       <FeatureCardsGrid />

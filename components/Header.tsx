@@ -5,7 +5,8 @@ import Image from "next/image";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
 
-export function Header() {
+export function Header({ 
+  homePage = false }: { homePage?: boolean }) {
   const scrollToWaitlist = () => {
     const element = document.getElementById("waitlist");
     if (element) {
@@ -37,7 +38,7 @@ export function Header() {
             { name: "Blog", href: "/blog" },
             { name: "About Us", href: "/about" },
             // { name: "Pricing", href: "#pricing" },
-            { name: "Benefits", href: "#benefits" },
+            { name: homePage ?"Benefits" : null, href: homePage ? "#benefits" : "" },
           ].map((item) => (
             <Link
               key={item.name}

@@ -123,7 +123,7 @@ export default function BlogPageClient() {
 
   return (
     <>
-      <Header />
+      <Header homePage={false} />
       <main className="min-h-screen bg-brown-50">
         {/* ============================================
             HERO SECTION
