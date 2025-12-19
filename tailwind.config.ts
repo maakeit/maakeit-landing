@@ -24,6 +24,12 @@ const config: Config = {
           900: "#2D1F13",
           950: "#1A1209",
         },
+        // Beige alias for convenience
+        beige: {
+          50: "#FEFDFB",
+          100: "#F5EFE7",
+          200: "#E8DED2",
+        },
         // Warm cream/beige palette
         cream: {
           50: "#FEFDFB",

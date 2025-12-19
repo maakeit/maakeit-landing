@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
 
@@ -20,29 +21,21 @@ export function Header() {
       className="sticky top-0 z-50 border-b border-brown-200/50 bg-cream-100/80 backdrop-blur-xl"
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2.5">
-          {/* <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#5A4634] shadow-warm-md">
-            <svg
-              className="h-5 w-5 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-          </div> */}
-          <span className="font-display text-2xl font-bold text-brown-900">Maakeit</span>
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo.png"
+            alt="Maakeit"
+            width={40}
+            height={40}
+            className="h-10 w-auto"
+          />
+          <span className="hidden sm:block font-display text-2xl font-bold text-brown-900">Maakeit</span>
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
           {[
-            { name: "Blogs", href: "#" },
-            { name: "About Us", href: "#about" },
+            { name: "Blog", href: "/blog" },
+            { name: "About Us", href: "/about" },
             // { name: "Pricing", href: "#pricing" },
             { name: "Benefits", href: "#benefits" },
           ].map((item) => (
