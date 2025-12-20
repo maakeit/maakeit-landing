@@ -49,7 +49,7 @@ interface APIBlogPost {
   };
 }
 
-const BASE_URL = "http://localhost:3001"
+const BASE_URL = process.env.BASE_URL || "https://maakeit.com";
 
 // Fetch post data
 async function getPost(slug: string): Promise<APIBlogPost | null> {
