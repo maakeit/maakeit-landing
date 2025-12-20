@@ -1,123 +1,175 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import connectDB from "@/lib/mongodb";
+import { BlogPost, Author } from "@/models";
 
-const postsDirectory = path.join(process.cwd(), "content/posts");
-
-// Simple auth check
+// Simple auth check - in production use proper authentication
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "maakeit2024";
 
-function ensurePostsDirectory() {
-  if (!fs.existsSync(postsDirectory)) {
-    fs.mkdirSync(postsDirectory, { recursive: true });
-  }
+function checkAuth(request: NextRequest): boolean {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) return false;
+  const password = authHeader.replace("Bearer ", "");
+  return password === ADMIN_PASSWORD;
 }
 
-// GET - List all posts
-export async function GET() {
+// GET - List all posts (including drafts) for admin
+export async function GET(request: NextRequest) {
   try {
-    ensurePostsDirectory();
+    await connectDB();
 
-    const fileNames = fs.readdirSync(postsDirectory);
-    const posts = fileNames
-      .filter((fileName) => fileName.endsWith(".mdx") || fileName.endsWith(".md"))
-      .map((fileName) => {
-        const slug = fileName.replace(/\.mdx?$/, "");
-        const fullPath = path.join(postsDirectory, fileName);
-        const fileContents = fs.readFileSync(fullPath, "utf8");
-
-        // Parse frontmatter manually
-        const frontmatterMatch = fileContents.match(/^---\n([\s\S]*?)\n---/);
-        if (!frontmatterMatch) {
-          return { slug, title: slug, date: "", author: "", excerpt: "" };
-        }
-
-        const frontmatter = frontmatterMatch[1];
-        const title = frontmatter.match(/title:\s*"(.*)"/)?.[1] || slug;
-        const date = frontmatter.match(/date:\s*"(.*)"/)?.[1] || "";
-        const author = frontmatter.match(/author:\s*"(.*)"/)?.[1] || "";
-        const excerpt = frontmatter.match(/excerpt:\s*"(.*)"/)?.[1] || "";
-
-        return { slug, title, date, author, excerpt };
-      })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const posts = await BlogPost.find()
+      .populate("author", "name slug avatar")
+      .sort({ createdAt: -1 })
+      .lean();
 
     return NextResponse.json({ posts });
   } catch (error) {
     console.error("Error fetching posts:", error);
-    return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch posts" },
+      { status: 500 }
+    );
   }
 }
 
 // POST - Create new post
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { title, slug, excerpt, content, author, date } = body;
+    await connectDB();
 
-    if (!title || !slug || !content) {
+    const body = await request.json();
+    const {
+      title,
+      slug,
+      excerpt,
+      content,
+      coverImage,
+      category,
+      tags,
+      authorId,
+      status,
+      metaTitle,
+      metaDescription,
+    } = body;
+
+    // Validate required fields
+    if (!title || !slug || !excerpt || !content || !coverImage || !category || !authorId) {
       return NextResponse.json(
-        { error: "Title, slug, and content are required" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    ensurePostsDirectory();
-
-    // Check if post already exists
-    const filePath = path.join(postsDirectory, `${slug}.mdx`);
-    if (fs.existsSync(filePath)) {
+    // Check if slug already exists
+    const existingPost = await BlogPost.findOne({ slug });
+    if (existingPost) {
       return NextResponse.json(
         { error: "A post with this slug already exists" },
         { status: 409 }
       );
     }
 
-    // Create MDX content with frontmatter
-    const mdxContent = `---
-title: "${title}"
-date: "${date || new Date().toISOString().split("T")[0]}"
-author: "${author || "Maakeit Team"}"
-excerpt: "${excerpt || ""}"
----
+    // Verify author exists
+    const author = await Author.findById(authorId);
+    if (!author) {
+      return NextResponse.json({ error: "Author not found" }, { status: 404 });
+    }
 
-${content}
-`;
+    // Create new post
+    const post = await BlogPost.create({
+      title,
+      slug,
+      excerpt,
+      content,
+      coverImage,
+      category,
+      tags: tags || [],
+      author: authorId,
+      status: status || "draft",
+      metaTitle,
+      metaDescription,
+      ogImage: coverImage,
+    });
 
-    fs.writeFileSync(filePath, mdxContent, "utf8");
-
-    return NextResponse.json({ success: true, slug });
+    return NextResponse.json({ success: true, post }, { status: 201 });
   } catch (error) {
     console.error("Error creating post:", error);
-    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create post" },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT - Update existing post
+export async function PUT(request: NextRequest) {
+  try {
+    await connectDB();
+
+    const body = await request.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Post ID is required" }, { status: 400 });
+    }
+
+    // If changing slug, check it doesn't conflict
+    if (updateData.slug) {
+      const existingPost = await BlogPost.findOne({
+        slug: updateData.slug,
+        _id: { $ne: id },
+      });
+      if (existingPost) {
+        return NextResponse.json(
+          { error: "A post with this slug already exists" },
+          { status: 409 }
+        );
+      }
+    }
+
+    const post = await BlogPost.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate("author", "name slug avatar");
+
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, post });
+  } catch (error) {
+    console.error("Error updating post:", error);
+    return NextResponse.json(
+      { error: "Failed to update post" },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE - Delete a post
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const slug = searchParams.get("slug");
+    await connectDB();
 
-    if (!slug) {
-      return NextResponse.json({ error: "Slug is required" }, { status: 400 });
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Post ID is required" }, { status: 400 });
     }
 
-    const mdxPath = path.join(postsDirectory, `${slug}.mdx`);
-    const mdPath = path.join(postsDirectory, `${slug}.md`);
+    const post = await BlogPost.findByIdAndDelete(id);
 
-    if (fs.existsSync(mdxPath)) {
-      fs.unlinkSync(mdxPath);
-    } else if (fs.existsSync(mdPath)) {
-      fs.unlinkSync(mdPath);
-    } else {
+    if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting post:", error);
-    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete post" },
+      { status: 500 }
+    );
   }
 }
-
